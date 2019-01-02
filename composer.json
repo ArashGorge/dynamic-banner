@@ -7,7 +7,6 @@
    "require"  : {
       "planetteamspeak/ts3-php-framework" : "^1.1",
       "dflydev/dot-access-data"           : "^2.0",
-      "symfony/cache"                     : "^4.2",
       "lefuturiste/iptator"               : "^1.1",
       "vectorface/whip"                   : "^0.3.2",
       "intervention/image": "^2.4",
