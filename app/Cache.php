@@ -2,13 +2,13 @@
 
     namespace Tivet\Banner;
 
-    use Psr\SimpleCache\InvalidArgumentException;
-    use Symfony\Component\Cache\Simple\FilesystemCache;
+    use Zend\Cache\Storage\Adapter\Filesystem;
+    use Zend\Cache\StorageFactory;
 
     class Cache
     {
         /**
-         * @var FilesystemCache
+         * @var Filesystem
          */
         private static $cache;
 
@@ -16,33 +16,23 @@
         /**
          * @param $key
          * @param $value
-         * @param null $ttl
          * @return bool
          */
-        public static function set($key, $value, $ttl = null)
+        public static function set($key, $value)
         {
-            try {
-                return static::fileSystemCache()->set($key, $value, $ttl);
-            }
-            catch (InvalidArgumentException $e) {
-                echo "[CACHE] {$e->getMessage()}";
-            }
+            return static::fileSystemCache()->setItem(md5($key), $value);
         }
 
 
         /**
          * @param $key
-         * @param null $default
-         * @return mixed|null
+         * @param null $success
+         * @param null $casToken
+         * @return mixed
          */
-        public static function get($key, $default = null)
+        public static function get($key, & $success = null, & $casToken = null)
         {
-            try {
-                return static::fileSystemCache()->get($key, $default);
-            }
-            catch (InvalidArgumentException $e) {
-                echo "[CACHE] {$e->getMessage()}";
-            }
+            return static::fileSystemCache()->getItem(md5($key), $success, $casToken);
         }
 
 
@@ -52,14 +42,23 @@
          */
         public static function has($key)
         {
-            return static::fileSystemCache()->has($key);
+            return static::fileSystemCache()->hasItem(md5($key));
         }
 
 
         private static function fileSystemCache()
         {
             if (!static::$cache) {
-                static::$cache = new FilesystemCache('', conf('banner.cache_ttl'), BASE_DIR . '/cache');
+
+                static::$cache = StorageFactory::factory([
+                    'adapter' => [
+                        'name'    => 'filesystem',
+                        'options' => [
+                            'ttl'       => conf('banner.cache_ttl'),
+                            'cache_dir' => BASE_DIR . DIRECTORY_SEPARATOR . 'cache',
+                        ]
+                    ]
+                ]);
             }
 
             return static::$cache;
